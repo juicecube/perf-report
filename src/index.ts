@@ -67,8 +67,10 @@ try {
 }
 
 export function setInteractive(): void {
-  tti = Math.ceil(performance.now());
-  setTimeout(setFinished, 'PerformanceObserver' in window ? 1000 * 30 : 0);
+  if (!tti) {
+    tti = Math.ceil(performance.now());
+    setTimeout(setFinished, 'PerformanceObserver' in window ? 1000 * 30 : 0);
+  }
 }
 
 export function isFinished(): boolean {
