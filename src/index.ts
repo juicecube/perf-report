@@ -69,7 +69,15 @@ try {
 export function setInteractive(): void {
   if (!tti) {
     tti = Math.ceil(performance.now());
-    setTimeout(setFinished, 'PerformanceObserver' in window ? 1000 * 30 : 0);
+    let to = 0;
+    if ('PerformanceObserver' in window) {
+      if (performance.timing.loadEventEnd) {
+        to = Math.min(performance.timing.loadEventEnd - performance.timing.navigationStart, 1000 * 30);
+      } else {
+        to = 1000 * 30;
+      }
+    }
+    setTimeout(setFinished, to);
   }
 }
 
