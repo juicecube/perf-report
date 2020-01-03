@@ -46,18 +46,14 @@ function init(): void {
     // the element is an image and it's loaded cross-origin without the
     // `Timing-Allow-Origin` header.)
     lcp = Math.ceil(lastEntry.renderTime || lastEntry.loadTime);
+    if ((window as any).__PERF_REPORT__) {
+      (window as any).__PERF_REPORT__.lcp = lcp;
+    }
   });
 
   // Observe entries of type `largest-contentful-paint`, including buffered
   // entries, i.e. entries that occurred before calling `observe()`.
   lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
-
-  window.addEventListener('load', function() {
-    if (tti) {
-      setFinished();
-    }
-  });
-  setTimeout(setFinished, 1000 * 60 * 2);
 }
 
 try {
@@ -69,15 +65,22 @@ try {
 export function setInteractive(): void {
   if (!tti) {
     tti = Math.ceil(performance.now());
-    let to = 0;
     if ('PerformanceObserver' in window) {
-      if (performance.timing.loadEventEnd) {
-        to = Math.min(performance.timing.loadEventEnd - performance.timing.navigationStart, 1000 * 30);
-      } else {
-        to = 1000 * 30;
-      }
+      (function check(): void {
+        if (fcp && lcp) {
+          if (performance.timing.loadEventStart) {
+            setTimeout(setFinished, 1000);
+          } else {
+            setTimeout(setFinished, 1000 * 30);
+            window.addEventListener('load', setFinished);
+          }
+        } else {
+          setTimeout(check, 1000);
+        }
+      })();
+    } else {
+      setFinished();
     }
-    setTimeout(setFinished, to);
   }
 }
 
