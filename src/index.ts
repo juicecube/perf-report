@@ -4,6 +4,7 @@ export type PerfResult = {
   tti: number;
 };
 
+let globalVarName = '__PERF_REPORT__';
 let fcp: number;
 let lcp: number;
 let tti: number;
@@ -12,7 +13,7 @@ let finished = false;
 function setFinished(): void {
   if (!finished) {
     finished = true;
-    (window as any).__PERF_REPORT__ = getResult();
+    (window as any)[globalVarName] = getResult();
   }
 }
 
@@ -46,8 +47,8 @@ function init(): void {
     // the element is an image and it's loaded cross-origin without the
     // `Timing-Allow-Origin` header.)
     lcp = Math.ceil(lastEntry.renderTime || lastEntry.loadTime);
-    if ((window as any).__PERF_REPORT__) {
-      (window as any).__PERF_REPORT__.lcp = lcp;
+    if ((window as any)[globalVarName]) {
+      (window as any)[globalVarName].lcp = lcp;
     }
   });
 
@@ -60,6 +61,10 @@ try {
   init();
 } catch (e) {
   //
+}
+
+export function setGlobalVarName(name: string): void {
+  globalVarName = name;
 }
 
 export function setInteractive(): void {
